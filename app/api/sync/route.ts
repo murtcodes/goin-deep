@@ -8,13 +8,22 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  // Get all unique player IDs from picks
-  const { data: picks } = await supabase.from('picks').select('player_id, player_name, position_type')
-  if (!picks || picks.length === 0) {
-    return NextResponse.json({ updated: 0 })
-  }
+  const { data: config } = await supabase.from('pool_config').select('season').eq('id', 1).single()
+  const season = config?.season || 20252026
 
-  // Build player map (id -> name and position_type)
+  // Get all unique player IDs from current season picks only
+  const { data: managers } = await supabase.from('managers').select('id').eq('season', season)
+  const managerIds = (managers || []).map(m => m.id)
+
+  if (managerIds.length === 0) return NextResponse.json({ updated: 0 })
+
+  const { data: picks } = await supabase
+    .from('picks')
+    .select('player_id, player_name, position_type')
+    .in('manager_id', managerIds)
+
+  if (!picks || picks.length === 0) return NextResponse.json({ updated: 0 })
+
   const playerMap = new Map<number, { name: string; posType: string }>()
   for (const p of picks) {
     if (!playerMap.has(p.player_id)) {
@@ -23,17 +32,14 @@ export async function POST(req: NextRequest) {
   }
 
   const playerIds = [...playerMap.keys()]
-  const { data: config } = await supabase.from('pool_config').select('season').eq('id', 1).single()
-  const season = config?.season || 20252026
-
   console.log(`Syncing ${playerIds.length} players for season ${season}...`)
   const statsMap = await fetchAllPlayersStats(playerIds, season)
 
-  // Upsert stats
   const upsertData = []
   for (const [playerId, stats] of statsMap.entries()) {
     upsertData.push({
       player_id: playerId,
+      season,
       player_name: stats.playerName || playerMap.get(playerId)?.name || '',
       position: stats.position,
       team: stats.team,
@@ -49,26 +55,22 @@ export async function POST(req: NextRequest) {
   if (upsertData.length > 0) {
     const { error } = await supabase
       .from('player_stats')
-      .upsert(upsertData, { onConflict: 'player_id' })
+      .upsert(upsertData, { onConflict: 'player_id,season' })
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
   }
 
-  // Also seed zeros for any players not yet in API (playoffs haven't started yet)
   const missing = playerIds.filter((id) => !statsMap.has(id))
   if (missing.length > 0) {
     const zeroData = missing.map((id) => ({
       player_id: id,
+      season,
       player_name: playerMap.get(id)?.name || '',
       position: playerMap.get(id)?.posType === 'G' ? 'G' : 'F',
       team: '',
-      goals: 0,
-      assists: 0,
-      wins: 0,
-      shutouts: 0,
-      gp: 0,
+      goals: 0, assists: 0, wins: 0, shutouts: 0, gp: 0,
       last_updated: new Date().toISOString(),
     }))
-    await supabase.from('player_stats').upsert(zeroData, { onConflict: 'player_id' })
+    await supabase.from('player_stats').upsert(zeroData, { onConflict: 'player_id,season' })
   }
 
   return NextResponse.json({ updated: upsertData.length, zeroed: missing.length })

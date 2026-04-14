@@ -15,13 +15,16 @@ async function getLeaderboard(): Promise<{
   scores: ManagerScore[];
   lastUpdated: string | null;
   draftOpen: boolean;
+  season: number;
 }> {
-  const [{ data: managers }, { data: picks }, { data: stats }, { data: config }] =
+  const { data: config } = await supabase.from("pool_config").select("*").eq("id", 1).single()
+  const season = config?.season || 20252026
+
+  const [{ data: managers }, { data: picks }, { data: stats }] =
     await Promise.all([
-      supabase.from("managers").select("*").order("created_at"),
+      supabase.from("managers").select("*").eq("season", season).order("created_at"),
       supabase.from("picks").select("*"),
-      supabase.from("player_stats").select("*"),
-      supabase.from("pool_config").select("*").eq("id", 1).single(),
+      supabase.from("player_stats").select("*").eq("season", season),
     ]);
 
   const statsMap = new Map<number, PlayerStats>();
@@ -57,18 +60,19 @@ async function getLeaderboard(): Promise<{
 
   scores.sort((a, b) => b.totalPoints - a.totalPoints);
 
-  return { scores, lastUpdated, draftOpen: config?.draft_open ?? true };
+  return { scores, lastUpdated, draftOpen: config?.draft_open ?? true, season };
 }
 
 export default async function Home() {
-  const { scores, lastUpdated, draftOpen } = await getLeaderboard();
+  const { scores, lastUpdated, draftOpen, season } = await getLeaderboard();
+  const seasonLabel = `${String(season).slice(0, 4)}–${String(season).slice(4)}`;
 
   return (
     <main className="max-w-2xl mx-auto px-4 py-8">
       {/* Header */}
       <div className="text-center mb-8">
         <h1 className="text-4xl font-bold text-white mb-1">🏒 Goin&apos; Deep</h1>
-        <p className="text-slate-400 text-sm">2026 NHL Playoff Pool</p>
+        <p className="text-slate-400 text-sm">{seasonLabel} NHL Playoff Pool</p>
       </div>
 
       {/* Draft CTA */}
@@ -130,6 +134,13 @@ export default async function Home() {
           Stats last synced: {new Date(lastUpdated).toLocaleString("en-CA", { timeZone: "America/Vancouver" })} PT
         </p>
       )}
+
+      {/* History link */}
+      <div className="text-center mt-6">
+        <Link href="/history" className="text-slate-600 hover:text-slate-400 text-sm transition-colors">
+          Past Seasons →
+        </Link>
+      </div>
 
       {/* Scoring legend */}
       <div className="mt-8 bg-slate-900/50 border border-slate-800 rounded-xl p-4">
