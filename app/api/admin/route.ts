@@ -57,7 +57,8 @@ export async function POST(req: NextRequest) {
   }
 
   if (body.action === 'delete_manager' && body.managerId) {
-    const { error } = await supabase.from('managers').delete().eq('id', body.managerId)
+    const adminClient = getAdminClient()
+    const { error } = await adminClient.from('managers').delete().eq('id', body.managerId)
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
     return NextResponse.json({ success: true })
   }
