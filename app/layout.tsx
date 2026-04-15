@@ -48,7 +48,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <nav className="fixed bottom-0 left-0 w-full h-20 flex justify-around items-center px-4 pb-2 z-50"
           style={{ background: 'rgba(4,19,41,0.92)', backdropFilter: 'blur(24px)', borderTop: '1px solid rgba(255,75,75,0.2)', boxShadow: '0 -8px 32px rgba(0,0,0,0.5)' }}>
           <NavItem href="/" icon="leaderboard" label="Standings" />
-          <NavItem href="/my-picks" icon="edit_calendar" label="My Picks" />
+          <NavItem href="/my-picks" icon="edit_calendar" label="My Team" />
           <NavItem href="/history" icon="history" label="History" />
         </nav>
       </body>
