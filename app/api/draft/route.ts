@@ -3,7 +3,7 @@ import { supabase } from '@/lib/supabase'
 
 export async function POST(req: NextRequest) {
   const body = await req.json()
-  const { name, teamName, forwards, defensemen, goalies } = body
+  const { name, teamName, forwards, defensemen, goalies, userId } = body
 
   if (!name?.trim() || !teamName?.trim()) {
     return NextResponse.json({ error: 'Name and team name are required' }, { status: 400 })
@@ -12,26 +12,57 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Must pick 6 forwards, 4 defensemen, 2 goalies' }, { status: 400 })
   }
 
-  const { data: config } = await supabase.from('pool_config').select('draft_open, season').eq('id', 1).single()
+  const { data: config } = await supabase
+    .from('pool_config')
+    .select('draft_open, season, draft_deadline')
+    .eq('id', 1)
+    .single()
+
   if (!config?.draft_open) {
     return NextResponse.json({ error: 'Draft is closed. Picks are locked!' }, { status: 403 })
   }
+
+  // Also enforce deadline server-side
+  if (config.draft_deadline && new Date(config.draft_deadline) < new Date()) {
+    return NextResponse.json({ error: 'Draft deadline has passed. Picks are locked!' }, { status: 403 })
+  }
+
   const season = config.season
 
+  // Enforce one team per user per season
+  if (userId) {
+    const { data: existingByUser } = await supabase
+      .from('managers')
+      .select('id')
+      .eq('user_id', userId)
+      .eq('season', season)
+      .single()
+
+    if (existingByUser) {
+      return NextResponse.json({ error: 'You already submitted a team this season.' }, { status: 409 })
+    }
+  }
+
   // Check for duplicate name in this season
-  const { data: existing } = await supabase
+  const { data: existingByName } = await supabase
     .from('managers')
     .select('id')
     .ilike('name', name.trim())
     .eq('season', season)
     .single()
-  if (existing) {
+
+  if (existingByName) {
     return NextResponse.json({ error: 'A team with that name already exists. Contact Curtis if this is an error.' }, { status: 409 })
   }
 
   const { data: manager, error: managerErr } = await supabase
     .from('managers')
-    .insert({ name: name.trim(), team_name: teamName.trim(), season })
+    .insert({
+      name: name.trim(),
+      team_name: teamName.trim(),
+      season,
+      ...(userId ? { user_id: userId } : {}),
+    })
     .select()
     .single()
 

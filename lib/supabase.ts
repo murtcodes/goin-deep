@@ -24,7 +24,10 @@ export type Manager = {
   name: string
   team_name: string
   created_at: string
+  user_id?: string | null
+  season?: number
 }
+
 
 export type Pick = {
   id: string
@@ -52,6 +55,7 @@ export type PoolConfig = {
   id: number
   draft_open: boolean
   season: number
+  draft_deadline?: string | null
 }
 
 // Scoring: G=2, A=1, GoalieW=2, GoalieSO=5
