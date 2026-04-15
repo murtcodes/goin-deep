@@ -189,7 +189,11 @@ export default function DraftPage() {
       });
       const data = await res.json();
       if (!res.ok) { setError(data.error || "Something went wrong"); }
-      else { setSuccess(true); setTimeout(() => router.push("/"), 2000); }
+      else {
+        localStorage.setItem("gd_entry", JSON.stringify({ email: email.trim().toLowerCase(), managerId: data.managerId }));
+        setSuccess(true);
+        setTimeout(() => router.push("/"), 2000);
+      }
     } catch { setError("Network error. Try again."); }
     finally { setSubmitting(false); }
   }
