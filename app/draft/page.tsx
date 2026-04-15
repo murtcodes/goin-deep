@@ -247,9 +247,9 @@ export default function DraftPage() {
           <SectionHeader label="Your Info" count={[name, teamName, email].filter(Boolean).length} total={3} />
           <div className="space-y-3">
             {[
-              { label: 'Your Name', value: name, set: setName, placeholder: 'e.g. Curtis', type: 'text' },
-              { label: 'Team Name', value: teamName, set: setTeamName, placeholder: "e.g. Teemu's Big Meat", type: 'text' },
-              { label: 'Email', value: email, set: setEmail, placeholder: 'you@example.com', type: 'email' },
+              { label: 'Your Name', value: name, set: setName, placeholder: '', type: 'text' },
+              { label: 'Team Name', value: teamName, set: setTeamName, placeholder: '', type: 'text' },
+              { label: 'Email', value: email, set: setEmail, placeholder: '', type: 'email' },
             ].map(({ label, value, set, placeholder, type }) => (
               <div key={label}>
                 <label className="block text-[10px] font-black uppercase tracking-widest mb-1.5"
