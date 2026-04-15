@@ -52,7 +52,9 @@ async function getLeaderboard(): Promise<{
 
     const totalPoints = enriched.reduce((sum, p) => {
       if (!p.stats) return sum;
-      return sum + calcPoints(p.stats, p.position_type as "F" | "D" | "G");
+      const pts = calcPoints(p.stats, p.position_type as "F" | "D" | "G");
+      const multiplier = p.player_id === manager.captain_player_id ? 2 : 1;
+      return sum + pts * multiplier;
     }, 0);
 
     return { manager, totalPoints, picks: enriched };
@@ -150,6 +152,7 @@ export default async function Home() {
           <span className="text-slate-400">Skater Assist</span><span className="text-white font-medium">1 pt</span>
           <span className="text-slate-400">Goalie Win</span><span className="text-white font-medium">2 pts</span>
           <span className="text-slate-400">Goalie Shutout</span><span className="text-white font-medium">5 pts</span>
+          <span className="text-amber-400">Captain (C)</span><span className="text-amber-400 font-medium">2x pts</span>
         </div>
       </div>
     </main>

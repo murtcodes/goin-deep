@@ -30,17 +30,22 @@ async function getTeam(id: string) {
 
   const totalPoints = enriched.reduce((sum, p) => {
     if (!p.stats) return sum;
-    return sum + calcPoints(p.stats, p.position_type as "F" | "D" | "G");
+    const pts = calcPoints(p.stats, p.position_type as "F" | "D" | "G");
+    const multiplier = p.player_id === manager.captain_player_id ? 2 : 1;
+    return sum + pts * multiplier;
   }, 0);
 
   return { manager, picks: enriched, totalPoints };
 }
 
-function StatLine({ stats, posType }: { stats: PlayerStats | null; posType: string }) {
+function StatLine({ stats, posType, isCaptain }: { stats: PlayerStats | null; posType: string; isCaptain?: boolean }) {
   if (!stats) return <span className="text-slate-600 text-xs">No playoff games yet</span>;
 
+  const multiplier = isCaptain ? 2 : 1;
+
   if (posType === "G") {
-    const pts = stats.wins * 2 + stats.shutouts * 5;
+    const base = stats.wins * 2 + stats.shutouts * 5;
+    const pts = base * multiplier;
     return (
       <div className="flex items-center gap-3 text-sm">
         <span className="text-slate-400">{stats.gp} GP</span>
@@ -50,7 +55,8 @@ function StatLine({ stats, posType }: { stats: PlayerStats | null; posType: stri
     );
   }
 
-  const pts = stats.goals * 2 + stats.assists;
+  const base = stats.goals * 2 + stats.assists;
+  const pts = base * multiplier;
   return (
     <div className="flex items-center gap-3 text-sm">
       <span className="text-slate-400">{stats.gp} GP</span>
@@ -95,15 +101,20 @@ export default async function TeamPage({ params }: { params: Promise<{ id: strin
             {grouped[pos].map((p) => (
               <div
                 key={p.id}
-                className="bg-slate-900 border border-slate-800 rounded-lg px-4 py-3"
+                className={`bg-slate-900 border rounded-lg px-4 py-3 ${p.player_id === manager.captain_player_id ? "border-amber-600" : "border-slate-800"}`}
               >
                 <div className="flex items-start justify-between mb-1">
-                  <span className="text-white font-medium text-sm">{p.player_name}</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-white font-medium text-sm">{p.player_name}</span>
+                    {p.player_id === manager.captain_player_id && (
+                      <span className="text-xs text-amber-400 font-bold bg-amber-400/10 px-1.5 py-0.5 rounded">C · 2x</span>
+                    )}
+                  </div>
                   <span className="text-xs text-slate-600 bg-slate-800 px-2 py-0.5 rounded">
                     {p.position_type}
                   </span>
                 </div>
-                <StatLine stats={p.stats ?? null} posType={p.position_type} />
+                <StatLine stats={p.stats ?? null} posType={p.position_type} isCaptain={p.player_id === manager.captain_player_id} />
               </div>
             ))}
           </div>

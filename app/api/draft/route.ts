@@ -3,13 +3,16 @@ import { supabase } from '@/lib/supabase'
 
 export async function POST(req: NextRequest) {
   const body = await req.json()
-  const { name, teamName, email, forwards, defensemen, goalies } = body
+  const { name, teamName, email, forwards, defensemen, goalies, captainPlayerId } = body
 
   if (!name?.trim() || !teamName?.trim() || !email?.trim()) {
     return NextResponse.json({ error: 'Name, team name, and email are required' }, { status: 400 })
   }
   if (forwards?.length !== 6 || defensemen?.length !== 4 || goalies?.length !== 2) {
     return NextResponse.json({ error: 'Must pick 6 forwards, 4 defensemen, 2 goalies' }, { status: 400 })
+  }
+  if (!captainPlayerId) {
+    return NextResponse.json({ error: 'You must choose a captain' }, { status: 400 })
   }
 
   const { data: config } = await supabase
@@ -48,6 +51,7 @@ export async function POST(req: NextRequest) {
       team_name: teamName.trim(),
       email: normalizedEmail,
       season,
+      captain_player_id: captainPlayerId,
     })
     .select()
     .single()

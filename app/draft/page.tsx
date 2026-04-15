@@ -130,6 +130,7 @@ export default function DraftPage() {
   const [forwards, setForwards] = useState<(PickedPlayer | null)[]>(Array(6).fill(null));
   const [defensemen, setDefensemen] = useState<(PickedPlayer | null)[]>(Array(4).fill(null));
   const [goalies, setGoalies] = useState<(PickedPlayer | null)[]>(Array(2).fill(null));
+  const [captainId, setCaptainId] = useState<number | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
@@ -166,6 +167,7 @@ export default function DraftPage() {
     e.preventDefault();
     if (!name.trim() || !teamName.trim() || !email.trim()) { setError("Fill in your name, team name, and email"); return; }
     if (!allPicked) { setError("Pick all 12 players before submitting"); return; }
+    if (!captainId) { setError("Choose a captain before submitting"); return; }
 
     setSubmitting(true);
     setError("");
@@ -180,6 +182,7 @@ export default function DraftPage() {
           forwards: forwards.filter(Boolean),
           defensemen: defensemen.filter(Boolean),
           goalies: goalies.filter(Boolean),
+          captainPlayerId: captainId,
         }),
       });
       const data = await res.json();
@@ -296,12 +299,36 @@ export default function DraftPage() {
           </div>
         </div>
 
+        {allPicked && (
+          <div className="bg-slate-900 border border-amber-600 rounded-xl p-4">
+            <h2 className="text-amber-400 font-semibold mb-1">Choose Your Captain</h2>
+            <p className="text-slate-400 text-xs mb-3">Your captain scores 2x points all playoffs.</p>
+            <div className="space-y-2">
+              {[...forwards, ...defensemen, ...goalies].filter(Boolean).map((p) => (
+                <button
+                  key={(p as PickedPlayer).id}
+                  type="button"
+                  onClick={() => setCaptainId((p as PickedPlayer).id)}
+                  className={`w-full text-left px-3 py-2 rounded-lg border transition-colors flex items-center justify-between ${
+                    captainId === (p as PickedPlayer).id
+                      ? "bg-amber-500/20 border-amber-500 text-amber-300"
+                      : "bg-slate-800 border-slate-700 text-white hover:border-slate-500"
+                  }`}
+                >
+                  <span>{(p as PickedPlayer).name}</span>
+                  {captainId === (p as PickedPlayer).id && <span className="text-amber-400 text-xs font-bold">C · 2x</span>}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
         {error && (
           <div className="bg-red-900/40 border border-red-700 rounded-lg px-4 py-3 text-red-300 text-sm">{error}</div>
         )}
 
         <button type="submit"
-          disabled={submitting || !allPicked || !name.trim() || !teamName.trim() || !email.trim()}
+          disabled={submitting || !allPicked || !captainId || !name.trim() || !teamName.trim() || !email.trim()}
           className="w-full bg-blue-600 hover:bg-blue-500 disabled:bg-slate-700 disabled:text-slate-500 text-white font-semibold py-3 rounded-xl transition-colors text-lg"
         >
           {submitting ? "Submitting..." : "Lock In My Team 🔒"}

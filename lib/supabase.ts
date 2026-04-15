@@ -26,6 +26,7 @@ export type Manager = {
   created_at: string
   user_id?: string | null
   season?: number
+  captain_player_id?: number | null
 }
 
 
