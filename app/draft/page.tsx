@@ -2,8 +2,6 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabase";
-import type { User } from "@supabase/supabase-js";
 import Link from "next/link";
 
 type PlayerOption = {
@@ -124,13 +122,11 @@ function formatDeadline(iso: string): string {
 
 export default function DraftPage() {
   const router = useRouter();
-  const [user, setUser] = useState<User | null | undefined>(undefined); // undefined = loading
-  const [alreadyEntered, setAlreadyEntered] = useState(false);
-  const [existingTeamName, setExistingTeamName] = useState("");
   const [draftOpen, setDraftOpen] = useState(true);
   const [deadline, setDeadline] = useState<string | null>(null);
   const [name, setName] = useState("");
   const [teamName, setTeamName] = useState("");
+  const [email, setEmail] = useState("");
   const [forwards, setForwards] = useState<(PickedPlayer | null)[]>(Array(6).fill(null));
   const [defensemen, setDefensemen] = useState<(PickedPlayer | null)[]>(Array(4).fill(null));
   const [goalies, setGoalies] = useState<(PickedPlayer | null)[]>(Array(2).fill(null));
@@ -138,31 +134,15 @@ export default function DraftPage() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
 
-  // Load auth state and pool config
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => setUser(data.user ?? null));
-    supabase.auth.onAuthStateChange((_event, session) => setUser(session?.user ?? null));
-
     fetch("/api/pool-config").then(r => r.json()).then(d => {
       setDraftOpen(d.draft_open);
       setDeadline(d.draft_deadline ?? null);
-      // Also check deadline client-side
       if (d.draft_deadline && new Date(d.draft_deadline) < new Date()) {
         setDraftOpen(false);
       }
     });
   }, []);
-
-  // Once we have a user, check if they already entered this season
-  useEffect(() => {
-    if (!user) return;
-    fetch(`/api/my-entry?userId=${user.id}`).then(r => r.json()).then(d => {
-      if (d.manager) {
-        setAlreadyEntered(true);
-        setExistingTeamName(d.manager.team_name);
-      }
-    });
-  }, [user]);
 
   const allPicked = forwards.every(Boolean) && defensemen.every(Boolean) && goalies.every(Boolean);
 
@@ -184,8 +164,7 @@ export default function DraftPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!user) { router.push("/login"); return; }
-    if (!name.trim() || !teamName.trim()) { setError("Enter your name and team name"); return; }
+    if (!name.trim() || !teamName.trim() || !email.trim()) { setError("Fill in your name, team name, and email"); return; }
     if (!allPicked) { setError("Pick all 12 players before submitting"); return; }
 
     setSubmitting(true);
@@ -197,10 +176,10 @@ export default function DraftPage() {
         body: JSON.stringify({
           name: name.trim(),
           teamName: teamName.trim(),
+          email: email.trim(),
           forwards: forwards.filter(Boolean),
           defensemen: defensemen.filter(Boolean),
           goalies: goalies.filter(Boolean),
-          userId: user.id,
         }),
       });
       const data = await res.json();
@@ -217,49 +196,6 @@ export default function DraftPage() {
     }
   }
 
-  // Loading auth
-  if (user === undefined) {
-    return <main className="max-w-lg mx-auto px-4 py-24 text-center"><p className="text-slate-500">Loading...</p></main>;
-  }
-
-  // Not logged in
-  if (!user) {
-    return (
-      <main className="max-w-sm mx-auto px-4 py-24 text-center">
-        <p className="text-5xl mb-4">🏒</p>
-        <h1 className="text-2xl font-bold text-white mb-2">Sign in to submit picks</h1>
-        <p className="text-slate-400 text-sm mb-6">
-          Use your email — same email next year means your history carries over.
-        </p>
-        {deadline && <p className="text-amber-400 text-sm mb-6">Draft closes: {formatDeadline(deadline)}</p>}
-        <Link href="/login" className="inline-block bg-blue-600 hover:bg-blue-500 text-white font-semibold px-6 py-2.5 rounded-lg transition-colors">
-          Sign In →
-        </Link>
-        <div className="mt-6">
-          <Link href="/" className="text-slate-600 hover:text-slate-400 text-sm">← View leaderboard</Link>
-        </div>
-      </main>
-    );
-  }
-
-  // Already entered this season
-  if (alreadyEntered) {
-    return (
-      <main className="max-w-sm mx-auto px-4 py-24 text-center">
-        <p className="text-5xl mb-4">✅</p>
-        <h1 className="text-2xl font-bold text-white mb-2">You&apos;re already in!</h1>
-        <p className="text-slate-400 text-sm mb-2">
-          Your team <span className="text-white font-medium">&ldquo;{existingTeamName}&rdquo;</span> is locked in.
-        </p>
-        <p className="text-slate-500 text-xs mb-6">Contact Curtis to make changes.</p>
-        <Link href="/" className="inline-block bg-slate-700 hover:bg-slate-600 text-white font-semibold px-6 py-2.5 rounded-lg transition-colors">
-          View Leaderboard →
-        </Link>
-      </main>
-    );
-  }
-
-  // Draft closed
   if (!draftOpen) {
     return (
       <main className="max-w-sm mx-auto px-4 py-24 text-center">
@@ -297,7 +233,6 @@ export default function DraftPage() {
 
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-3">
-          <p className="text-slate-500 text-xs">Signed in as {user.email}</p>
           <div>
             <label className="text-slate-400 text-xs uppercase tracking-wider block mb-1">Your Name</label>
             <input type="text" value={name} onChange={(e) => setName(e.target.value)}
@@ -311,6 +246,14 @@ export default function DraftPage() {
               placeholder="e.g. Teemu's Big Meat"
               className="w-full bg-slate-800 border border-slate-700 focus:border-blue-500 rounded-lg px-3 py-2 text-white placeholder-slate-500 outline-none"
             />
+          </div>
+          <div>
+            <label className="text-slate-400 text-xs uppercase tracking-wider block mb-1">Email</label>
+            <input type="email" value={email} onChange={(e) => setEmail(e.target.value)}
+              placeholder="you@example.com"
+              className="w-full bg-slate-800 border border-slate-700 focus:border-blue-500 rounded-lg px-3 py-2 text-white placeholder-slate-500 outline-none"
+            />
+            <p className="text-slate-600 text-xs mt-1">Same email next year = your history carries over</p>
           </div>
         </div>
 
@@ -358,7 +301,7 @@ export default function DraftPage() {
         )}
 
         <button type="submit"
-          disabled={submitting || !allPicked || !name.trim() || !teamName.trim()}
+          disabled={submitting || !allPicked || !name.trim() || !teamName.trim() || !email.trim()}
           className="w-full bg-blue-600 hover:bg-blue-500 disabled:bg-slate-700 disabled:text-slate-500 text-white font-semibold py-3 rounded-xl transition-colors text-lg"
         >
           {submitting ? "Submitting..." : "Lock In My Team 🔒"}

@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
 
 export async function GET(req: NextRequest) {
-  const userId = req.nextUrl.searchParams.get('userId')
-  if (!userId) {
+  const email = req.nextUrl.searchParams.get('email')
+  if (!email) {
     return NextResponse.json({ manager: null })
   }
 
@@ -20,7 +20,7 @@ export async function GET(req: NextRequest) {
   const { data: manager } = await supabase
     .from('managers')
     .select('id, name, team_name, season')
-    .eq('user_id', userId)
+    .ilike('email', email.trim().toLowerCase())
     .eq('season', config.season)
     .single()
 
