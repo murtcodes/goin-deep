@@ -7,13 +7,17 @@ import { notFound } from "next/navigation";
 export const dynamic = 'force-dynamic';
 
 async function getTeam(id: string) {
-  const [{ data: manager }, { data: picks }, { data: stats }] = await Promise.all([
+  const [{ data: manager }, { data: picks }] = await Promise.all([
     supabase.from("managers").select("*").eq("id", id).single(),
     supabase.from("picks").select("*").eq("manager_id", id),
-    supabase.from("player_stats").select("*"),
   ]);
 
   if (!manager) return null;
+
+  const { data: stats } = await supabase
+    .from("player_stats")
+    .select("*")
+    .eq("season", manager.season);
 
   const statsMap = new Map<number, PlayerStats>();
   for (const s of stats || []) statsMap.set(s.player_id, s);
