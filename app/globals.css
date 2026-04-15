@@ -1,22 +1,154 @@
 @import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700;800;900&family=Manrope:wght@200;300;400;500;600;700;800&display=swap');
 
-:root {
-  --background: #0a0f1e;
-  --foreground: #e8eaf0;
-  --card: #111827;
-  --border: #1f2937;
-  --accent: #3b82f6;
-  --gold: #f59e0b;
-  --silver: #94a3b8;
-  --bronze: #b45309;
+@theme {
+  /* Ice Arena Color Palette */
+  --color-surface:                #041329;
+  --color-surface-dim:            #041329;
+  --color-surface-bright:         #2c3951;
+  --color-surface-container-lowest: #010e24;
+  --color-surface-container-low:  #0d1c32;
+  --color-surface-container:      #112036;
+  --color-surface-container-high: #1c2a41;
+  --color-surface-container-highest: #27354c;
+  --color-surface-variant:        #27354c;
+  --color-on-surface:             #d6e3ff;
+  --color-on-surface-variant:     #c1c7ce;
+  --color-background:             #041329;
+  --color-on-background:          #d6e3ff;
+  --color-primary:                #c9e6ff;
+  --color-primary-container:      #9accf3;
+  --color-primary-fixed:          #c9e6ff;
+  --color-primary-fixed-dim:      #9accf3;
+  --color-on-primary:             #00344e;
+  --color-on-primary-container:   #205779;
+  --color-on-primary-fixed:       #001e2f;
+  --color-on-primary-fixed-variant: #0e4b6c;
+  --color-inverse-primary:        #2e6385;
+  --color-secondary:              #ffb3ae;
+  --color-secondary-container:    #ad031a;
+  --color-secondary-fixed:        #ffdad7;
+  --color-secondary-fixed-dim:    #ffb3ae;
+  --color-on-secondary:           #68000b;
+  --color-on-secondary-container: #ffb8b2;
+  --color-on-secondary-fixed:     #410004;
+  --color-on-secondary-fixed-variant: #930014;
+  --color-tertiary:               #ffdf9e;
+  --color-tertiary-container:     #fabd00;
+  --color-tertiary-fixed:         #ffdf9e;
+  --color-tertiary-fixed-dim:     #fabd00;
+  --color-on-tertiary:            #3f2e00;
+  --color-on-tertiary-container:  #6a4e00;
+  --color-on-tertiary-fixed:      #261a00;
+  --color-on-tertiary-fixed-variant: #5b4300;
+  --color-outline:                #8b9198;
+  --color-outline-variant:        #41474d;
+  --color-surface-tint:           #9accf3;
+  --color-inverse-surface:        #d6e3ff;
+  --color-inverse-on-surface:     #233148;
+  --color-error:                  #ffb4ab;
+  --color-error-container:        #93000a;
+  --color-on-error:               #690005;
+  --color-on-error-container:     #ffdad6;
+
+  /* Fonts */
+  --font-headline: 'Space Grotesk', sans-serif;
+  --font-body: 'Manrope', sans-serif;
+  --font-label: 'Space Grotesk', sans-serif;
+
+  /* Border radius (sharp/aggressive per design spec) */
+  --radius-DEFAULT: 0.125rem;
+  --radius-lg: 0.25rem;
+  --radius-xl: 0.5rem;
+  --radius-full: 0.75rem;
 }
+
+/* ─── Shared Ice Arena Utilities ─── */
+
+.ice-morphism {
+  background: rgba(154, 204, 243, 0.05);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: inset 0 0 20px rgba(255, 255, 255, 0.02);
+}
+
+.etched-ice {
+  background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(154,204,243,0.02) 100%);
+  box-shadow: inset 2px 2px 4px rgba(255,255,255,0.05), inset -2px -2px 4px rgba(0,0,0,0.2);
+}
+
+.skate-scratch {
+  background-image:
+    repeating-linear-gradient(45deg, transparent, transparent 40px, rgba(255,255,255,0.03) 41px, transparent 42px),
+    repeating-linear-gradient(-45deg, transparent, transparent 60px, rgba(255,255,255,0.02) 61px, transparent 62px);
+}
+
+.skate-texture {
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  opacity: 0.05;
+}
+
+.snow-buildup {
+  background: linear-gradient(to bottom, rgba(255,255,255,0.08) 0%, transparent 15%);
+}
+
+.frozen-divider {
+  position: relative;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #9accf3, transparent);
+  opacity: 0.3;
+}
+
+.ice-crystal {
+  clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+  background: #9accf3;
+}
+
+.rink-line-red {
+  height: 4px;
+  background: #FF4B4B;
+  opacity: 0.3;
+  filter: blur(2px);
+  box-shadow: 0 0 15px #FF4B4B;
+}
+
+.rink-line-blue {
+  height: 4px;
+  background: #9ACCF3;
+  opacity: 0.3;
+  filter: blur(2px);
+  box-shadow: 0 0 15px #9ACCF3;
+}
+
+.faceoff-circle {
+  border: 2px solid rgba(255, 75, 75, 0.15);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.goal-crease-bg {
+  position: fixed;
+  bottom: -10%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 120%;
+  height: 400px;
+  border: 4px solid #ad031a;
+  border-radius: 50% 50% 0 0;
+  opacity: 0.15;
+  filter: blur(8px);
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* ─── Base ─── */
+
+* { box-sizing: border-box; }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: system-ui, -apple-system, sans-serif;
-}
-
-* {
-  box-sizing: border-box;
+  background: #041329;
+  color: #d6e3ff;
+  font-family: 'Manrope', sans-serif;
+  min-height: 100dvh;
+  overflow-x: hidden;
 }

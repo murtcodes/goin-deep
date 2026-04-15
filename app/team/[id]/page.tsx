@@ -23,10 +23,7 @@ async function getTeam(id: string) {
       const order: Record<string, number> = { F: 0, D: 1, G: 2 };
       return (order[a.position_type] ?? 0) - (order[b.position_type] ?? 0) || a.slot - b.slot;
     })
-    .map((p) => ({
-      ...p,
-      stats: statsMap.get(p.player_id) ?? null,
-    }));
+    .map((p) => ({ ...p, stats: statsMap.get(p.player_id) ?? null }));
 
   const totalPoints = enriched.reduce((sum, p) => {
     if (!p.stats) return sum;
@@ -39,34 +36,61 @@ async function getTeam(id: string) {
 }
 
 function StatLine({ stats, posType, isCaptain }: { stats: PlayerStats | null; posType: string; isCaptain?: boolean }) {
-  if (!stats) return <span className="text-slate-600 text-xs">No playoff games yet</span>;
-
-  const multiplier = isCaptain ? 2 : 1;
-
-  if (posType === "G") {
-    const base = stats.wins * 2 + stats.shutouts * 5;
-    const pts = base * multiplier;
+  const mult = isCaptain ? 2 : 1;
+  if (!stats) {
     return (
-      <div className="flex items-center gap-3 text-sm">
-        <span className="text-slate-400">{stats.gp} GP</span>
-        <span className="text-slate-300">{stats.wins}W · {stats.shutouts} SO</span>
-        <span className="text-amber-400 font-semibold ml-auto">{pts} pts</span>
+      <p className="text-xs uppercase tracking-widest" style={{ color: 'rgba(154,204,243,0.3)', fontFamily: "'Space Grotesk', sans-serif" }}>
+        No playoff games yet
+      </p>
+    );
+  }
+  if (posType === 'G') {
+    const pts = (stats.wins * 2 + stats.shutouts * 5) * mult;
+    return (
+      <div className="flex items-center gap-4 text-sm mt-3">
+        <div className="text-center">
+          <span className="block text-[8px] uppercase tracking-widest" style={{ color: 'rgba(193,199,206,0.5)', fontFamily: "'Space Grotesk', sans-serif" }}>GP</span>
+          <span className="font-bold text-lg" style={{ color: '#c9e6ff', fontFamily: "'Space Grotesk', sans-serif" }}>{stats.gp}</span>
+        </div>
+        <div className="text-center">
+          <span className="block text-[8px] uppercase tracking-widest" style={{ color: 'rgba(193,199,206,0.5)', fontFamily: "'Space Grotesk', sans-serif" }}>W</span>
+          <span className="font-bold text-lg" style={{ color: '#c9e6ff', fontFamily: "'Space Grotesk', sans-serif" }}>{stats.wins}</span>
+        </div>
+        <div className="text-center">
+          <span className="block text-[8px] uppercase tracking-widest" style={{ color: 'rgba(193,199,206,0.5)', fontFamily: "'Space Grotesk', sans-serif" }}>SO</span>
+          <span className="font-bold text-lg" style={{ color: '#c9e6ff', fontFamily: "'Space Grotesk', sans-serif" }}>{stats.shutouts}</span>
+        </div>
+        <div className="text-center ml-auto">
+          <span className="block text-[8px] uppercase tracking-widest" style={{ color: isCaptain ? 'rgba(250,189,0,0.6)' : 'rgba(193,199,206,0.5)', fontFamily: "'Space Grotesk', sans-serif" }}>Pts</span>
+          <span className="font-black text-2xl italic" style={{ color: isCaptain ? '#fabd00' : '#9accf3', fontFamily: "'Space Grotesk', sans-serif" }}>{pts}</span>
+        </div>
       </div>
     );
   }
-
-  const base = stats.goals * 2 + stats.assists;
-  const pts = base * multiplier;
+  const pts = (stats.goals * 2 + stats.assists) * mult;
   return (
-    <div className="flex items-center gap-3 text-sm">
-      <span className="text-slate-400">{stats.gp} GP</span>
-      <span className="text-slate-300">{stats.goals}G · {stats.assists}A</span>
-      <span className="text-amber-400 font-semibold ml-auto">{pts} pts</span>
+    <div className="flex items-center gap-4 text-sm mt-3">
+      <div className="text-center">
+        <span className="block text-[8px] uppercase tracking-widest" style={{ color: 'rgba(193,199,206,0.5)', fontFamily: "'Space Grotesk', sans-serif" }}>GP</span>
+        <span className="font-bold text-lg" style={{ color: '#c9e6ff', fontFamily: "'Space Grotesk', sans-serif" }}>{stats.gp}</span>
+      </div>
+      <div className="text-center">
+        <span className="block text-[8px] uppercase tracking-widest" style={{ color: 'rgba(193,199,206,0.5)', fontFamily: "'Space Grotesk', sans-serif" }}>G</span>
+        <span className="font-bold text-lg" style={{ color: '#c9e6ff', fontFamily: "'Space Grotesk', sans-serif" }}>{stats.goals}</span>
+      </div>
+      <div className="text-center">
+        <span className="block text-[8px] uppercase tracking-widest" style={{ color: 'rgba(193,199,206,0.5)', fontFamily: "'Space Grotesk', sans-serif" }}>A</span>
+        <span className="font-bold text-lg" style={{ color: '#c9e6ff', fontFamily: "'Space Grotesk', sans-serif" }}>{stats.assists}</span>
+      </div>
+      <div className="text-center ml-auto">
+        <span className="block text-[8px] uppercase tracking-widest" style={{ color: isCaptain ? 'rgba(250,189,0,0.6)' : 'rgba(193,199,206,0.5)', fontFamily: "'Space Grotesk', sans-serif" }}>Pts</span>
+        <span className="font-black text-2xl italic" style={{ color: isCaptain ? '#fabd00' : '#9accf3', fontFamily: "'Space Grotesk', sans-serif" }}>{pts}</span>
+      </div>
     </div>
   );
 }
 
-const POS_LABEL: Record<string, string> = { F: "Forwards", D: "Defensemen", G: "Goalies" };
+const POS_LABEL: Record<string, string> = { F: 'Forwards', D: 'Defensemen', G: 'Goalies' };
 
 export default async function TeamPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -74,52 +98,114 @@ export default async function TeamPage({ params }: { params: Promise<{ id: strin
   if (!data) notFound();
 
   const { manager, picks, totalPoints } = data;
-
   const grouped: Record<string, typeof picks> = { F: [], D: [], G: [] };
   for (const p of picks) grouped[p.position_type]?.push(p);
 
+  const captain = picks.find(p => p.player_id === manager.captain_player_id);
+
   return (
-    <main className="max-w-lg mx-auto px-4 py-8">
-      <Link href="/" className="text-slate-500 hover:text-slate-300 text-sm mb-6 inline-block">
-        ← Leaderboard
+    <div className="pt-24 pb-32 px-4 max-w-2xl mx-auto">
+      <Link href="/" className="inline-flex items-center gap-1 text-xs font-bold uppercase tracking-widest mb-8 transition-colors"
+        style={{ fontFamily: "'Space Grotesk', sans-serif", color: 'rgba(154,204,243,0.4)' }}>
+        <span className="material-symbols-outlined text-sm">arrow_back</span> Standings
       </Link>
 
-      {/* Team header */}
-      <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 mb-6 text-center">
-        <h1 className="text-2xl font-bold text-white">{manager.team_name}</h1>
-        <p className="text-slate-400 text-sm mt-1">{manager.name}</p>
-        <p className="text-4xl font-bold text-amber-400 mt-3">{totalPoints} pts</p>
-      </div>
+      {/* Team hero */}
+      <section className="mb-10 pl-6" style={{ borderLeft: '4px solid #FF4B4B' }}>
+        <div className="flex flex-col gap-4">
+          <div>
+            <h2 className="text-5xl font-black uppercase tracking-tighter leading-none"
+              style={{ fontFamily: "'Space Grotesk', sans-serif", color: '#d6e3ff' }}>
+              {manager.team_name}
+            </h2>
+            <p className="font-bold tracking-[0.2em] uppercase mt-2 text-sm"
+              style={{ fontFamily: "'Space Grotesk', sans-serif", color: '#FF4B4B' }}>
+              {manager.name}
+            </p>
+          </div>
+          <div className="flex gap-4">
+            <div className="p-4 flex flex-col items-center min-w-[100px]"
+              style={{ background: '#1c2a41', borderTop: '2px solid rgba(154,204,243,0.2)' }}>
+              <span className="text-[10px] uppercase tracking-widest" style={{ fontFamily: "'Space Grotesk', sans-serif", color: 'rgba(193,199,206,0.6)' }}>Points</span>
+              <span className="text-3xl font-black italic" style={{ fontFamily: "'Space Grotesk', sans-serif", color: '#9accf3' }}>{totalPoints}</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Captain spotlight */}
+      {captain && (
+        <section className="mb-8">
+          <h3 className="text-xs font-bold uppercase tracking-[0.3em] mb-4 flex items-center gap-2"
+            style={{ fontFamily: "'Space Grotesk', sans-serif", color: '#fabd00' }}>
+            <span className="h-px w-8 block" style={{ background: 'rgba(250,189,0,0.3)' }} />
+            Team Captain
+          </h3>
+          <div className="relative overflow-hidden skate-texture p-6"
+            style={{ background: '#27354c', border: '2px solid #fabd00', boxShadow: '0 0 40px rgba(250,189,0,0.15)', borderRadius: '0.25rem' }}>
+            <div className="flex items-start justify-between mb-4">
+              <div>
+                <div className="inline-flex items-center justify-center w-10 h-10 font-black text-2xl italic mb-3"
+                  style={{ fontFamily: "'Space Grotesk', sans-serif", background: '#fabd00', color: '#3f2e00', borderRadius: '0.125rem', boxShadow: '0 0 15px rgba(250,189,0,0.5)' }}>
+                  C
+                </div>
+                <h4 className="text-3xl font-black uppercase tracking-tighter leading-none"
+                  style={{ fontFamily: "'Space Grotesk', sans-serif", color: '#ffffff' }}>
+                  {captain.player_name}
+                </h4>
+                <p className="text-[10px] font-bold uppercase tracking-widest mt-1"
+                  style={{ fontFamily: "'Space Grotesk', sans-serif", color: '#9accf3' }}>
+                  {captain.position_type} · 2× Points
+                </p>
+              </div>
+            </div>
+            <StatLine stats={captain.stats ?? null} posType={captain.position_type} isCaptain />
+          </div>
+        </section>
+      )}
 
       {/* Roster by position */}
-      {(["F", "D", "G"] as const).map((pos) => (
-        <div key={pos} className="mb-4">
-          <h2 className="text-slate-500 text-xs font-semibold uppercase tracking-wider mb-2 px-1">
-            {POS_LABEL[pos]}
-          </h2>
+      {(['F', 'D', 'G'] as const).map((pos) => (
+        <div key={pos} className="mb-8">
+          {/* Section divider */}
+          <div className="flex items-center gap-3 mb-4">
+            <span className="font-bold uppercase tracking-tight text-sm"
+              style={{ fontFamily: "'Space Grotesk', sans-serif", color: '#c9e6ff' }}>
+              {POS_LABEL[pos]}
+            </span>
+            <div className="flex-grow flex items-center gap-2">
+              <div className="ice-crystal w-2 h-2" />
+              <div className="frozen-divider flex-grow" />
+              <div className="ice-crystal w-2 h-2" />
+            </div>
+          </div>
+
           <div className="space-y-2">
-            {grouped[pos].map((p) => (
-              <div
-                key={p.id}
-                className={`bg-slate-900 border rounded-lg px-4 py-3 ${p.player_id === manager.captain_player_id ? "border-amber-600" : "border-slate-800"}`}
-              >
-                <div className="flex items-start justify-between mb-1">
-                  <div className="flex items-center gap-2">
-                    <span className="text-white font-medium text-sm">{p.player_name}</span>
-                    {p.player_id === manager.captain_player_id && (
-                      <span className="text-xs text-amber-400 font-bold bg-amber-400/10 px-1.5 py-0.5 rounded">C · 2x</span>
-                    )}
+            {grouped[pos].map((p) => {
+              const isCaptain = p.player_id === manager.captain_player_id;
+              if (isCaptain) return null; // shown above in captain section
+              return (
+                <div key={p.id} className="relative p-4 skate-texture transition-colors"
+                  style={{ background: '#0d1c32', borderTop: `2px solid ${isCaptain ? '#fabd00' : 'rgba(154,204,243,0.15)'}`, borderRadius: '0.125rem' }}>
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <span className="font-bold uppercase tracking-tight text-base"
+                        style={{ fontFamily: "'Space Grotesk', sans-serif", color: '#ffffff' }}>
+                        {p.player_name}
+                      </span>
+                      <span className="ml-2 text-[10px] font-black uppercase px-1.5 py-0.5"
+                        style={{ fontFamily: "'Space Grotesk', sans-serif", background: 'rgba(154,204,243,0.1)', color: 'rgba(154,204,243,0.6)', borderRadius: '0.125rem' }}>
+                        {p.position_type}
+                      </span>
+                    </div>
                   </div>
-                  <span className="text-xs text-slate-600 bg-slate-800 px-2 py-0.5 rounded">
-                    {p.position_type}
-                  </span>
+                  <StatLine stats={p.stats ?? null} posType={p.position_type} isCaptain={false} />
                 </div>
-                <StatLine stats={p.stats ?? null} posType={p.position_type} isCaptain={p.player_id === manager.captain_player_id} />
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       ))}
-    </main>
+    </div>
   );
 }
