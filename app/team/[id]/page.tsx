@@ -10,6 +10,13 @@ function headshotUrl(playerId: number, team: string, season = 20252026) {
   return `https://assets.nhle.com/mugs/nhl/${season}/${team}/${playerId}.png`;
 }
 
+async function headshotExists(url: string): Promise<boolean> {
+  try {
+    const res = await fetch(url, { redirect: 'manual', next: { revalidate: 86400 } });
+    return res.status === 200;
+  } catch { return false; }
+}
+
 export const dynamic = 'force-dynamic';
 
 async function getPlayerTeam(playerId: number): Promise<string> {
@@ -52,7 +59,7 @@ async function getTeam(id: string) {
   }, 0);
 
   // Backfill team from NHL API for picks missing it (submitted before team column existed)
-  const enrichedWithTeam = await Promise.all(enriched.map(async (p) => {
+  const withTeam = await Promise.all(enriched.map(async (p) => {
     if (!p.team && !p.stats?.team) {
       const team = await getPlayerTeam(p.player_id);
       return { ...p, team };
@@ -61,6 +68,16 @@ async function getTeam(id: string) {
   }));
 
   const currentSeason = config?.season ?? 20252026;
+
+  // Verify headshots exist (NHL returns 302→default-skater for unknown player/team combos)
+  const enrichedWithTeam = await Promise.all(withTeam.map(async (p) => {
+    const team = p.stats?.team ?? p.team;
+    if (!team) return { ...p, hasHeadshot: false };
+    const url = headshotUrl(p.player_id, team, currentSeason);
+    const hasHeadshot = await headshotExists(url);
+    return { ...p, hasHeadshot };
+  }));
+
   return { manager, picks: enrichedWithTeam, totalPoints, currentSeason };
 }
 
@@ -218,7 +235,7 @@ export default async function TeamPage({
                       {captain.position_type} · 2× Points
                     </p>
                   </div>
-                  {(captain.stats?.team || captain.team) && (
+                  {captain.hasHeadshot && (
                     <PlayerHeadshot
                       src={headshotUrl(captain.player_id, captain.stats?.team ?? captain.team!)}
                       alt={captain.player_name}
@@ -253,7 +270,7 @@ export default async function TeamPage({
                     <div key={p.id} className="relative p-4 skate-texture transition-colors"
                       style={{ background: '#0d1c32', borderTop: `2px solid ${isCaptain ? '#fabd00' : 'rgba(154,204,243,0.15)'}`, borderRadius: '0.125rem' }}>
                       <div className="flex items-start gap-3">
-                        {(p.stats?.team || p.team) && (
+                        {p.hasHeadshot && (
                           <PlayerHeadshot
                             src={headshotUrl(p.player_id, p.stats?.team ?? p.team!)}
                             alt={p.player_name}
