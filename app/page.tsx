@@ -6,28 +6,6 @@ import Countdown from "@/app/components/Countdown";
 
 export const dynamic = 'force-dynamic';
 
-const MOM_JOKES = [
-  "Tyler's mom is so big she got baptized at SeaWorld.",
-  "Tyler's mom is so old her birth certificate is in Roman numerals.",
-  "Tyler's mom is so slow she got lapped by a Zamboni.",
-  "Tyler's mom thought offsides was a salad dressing.",
-  "Tyler's mom sat on an iPad and now it's a flat screen.",
-  "Tyler's mom is so loud the penalty box filed a noise complaint.",
-  "Tyler's mom is so bad at hockey she ices the puck by sitting on it.",
-  "Tyler's mom uses a Zamboni as a mobility scooter.",
-  "Tyler's mom is so big she counts as a line change.",
-  "Tyler's mom is so slow, she still hasn't finished her first period.",
-  "Tyler's mom thought a hat trick was something you buy at Party City.",
-  "Tyler's mom is so wide, she counts as two men in the box.",
-  "Tyler's mom fell and the ice cracked — both of them.",
-  "Tyler's mom is so dense she makes the puck look light.",
-  "Tyler's mom tried to do the wave but caused a tsunami warning.",
-];
-
-function getMomJoke() {
-  const dayIndex = Math.floor(Date.now() / 86400000);
-  return MOM_JOKES[dayIndex % MOM_JOKES.length];
-}
 
 type ManagerScore = {
   manager: Manager;
@@ -132,10 +110,8 @@ export default async function Home() {
         <div className="space-y-3">
           {scores.map((s, i) => {
             const style = RANK_STYLES[i] ?? { bg: 'rgba(154,204,243,0.03)', border: 'rgba(255,255,255,0.05)', num: 'rgba(154,204,243,0.4)', pts: 'rgba(154,204,243,0.4)', glow: 'none' };
-            const isTyler = s.manager.name.toLowerCase().includes('tyler hass') || s.manager.team_name.toLowerCase().includes('fully bedarted');
             return (
-              <div key={s.manager.id} className="flex flex-col gap-1">
-              <Link href={`/team/${s.manager.id}`}
+              <Link key={s.manager.id} href={`/team/${s.manager.id}`}
                 className="block relative skate-scratch snow-buildup transition-all active:scale-[0.99]"
                 style={{ background: style.bg, border: `1px solid ${style.border}`, boxShadow: style.glow, borderRadius: '0.25rem', backdropFilter: 'blur(12px)' }}>
                 <div className="p-5 flex items-center gap-4">
@@ -178,13 +154,6 @@ export default async function Home() {
                   </div>
                 )}
               </Link>
-              {isTyler && (
-                <div className="px-3 py-2 text-xs italic"
-                  style={{ background: 'rgba(255,75,75,0.07)', border: '1px solid rgba(255,75,75,0.2)', borderRadius: '0.25rem', color: 'rgba(255,180,180,0.7)', fontFamily: "'Manrope', sans-serif" }}>
-                  💬 {getMomJoke()}
-                </div>
-              )}
-              </div>
             );
           })}
         </div>
