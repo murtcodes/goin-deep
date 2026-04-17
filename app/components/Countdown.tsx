@@ -49,7 +49,7 @@ export default function Countdown() {
     <div className="flex flex-col items-center gap-2">
       <p className="text-[10px] font-black uppercase tracking-[0.3em]"
         style={{ fontFamily: "'Space Grotesk', sans-serif", color: 'rgba(154,204,243,0.6)' }}>
-        Draft closes · Apr 19 · 7PM ET
+        Draft closes · Apr 18 · 12PM PT
       </p>
       <div className="flex items-end gap-3">
         <Unit val={d} label="Days" />

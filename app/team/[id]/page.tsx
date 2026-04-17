@@ -150,7 +150,7 @@ export default async function TeamPage({ params }: { params: Promise<{ id: strin
           </h3>
           <p className="text-sm font-bold uppercase tracking-widest"
             style={{ fontFamily: "'Space Grotesk', sans-serif", color: 'rgba(154,204,243,0.45)' }}>
-            Rosters reveal Apr 19 · 7PM ET
+            Rosters reveal Apr 18 · 12PM PT
           </p>
           <p className="mt-4 text-xs" style={{ color: 'rgba(154,204,243,0.3)' }}>
             No peeking. Everyone stays blind until the puck drops.
