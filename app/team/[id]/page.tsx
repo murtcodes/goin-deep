@@ -13,9 +13,10 @@ function headshotUrl(playerId: number, team: string, season = 20252026) {
 export const dynamic = 'force-dynamic';
 
 async function getTeam(id: string) {
-  const [{ data: manager }, { data: picks }] = await Promise.all([
+  const [{ data: manager }, { data: picks }, { data: config }] = await Promise.all([
     supabase.from("managers").select("*").eq("id", id).single(),
     supabase.from("picks").select("*").eq("manager_id", id),
+    supabase.from("pool_config").select("season").eq("id", 1).single(),
   ]);
 
   if (!manager) return null;
@@ -42,7 +43,8 @@ async function getTeam(id: string) {
     return sum + pts * multiplier;
   }, 0);
 
-  return { manager, picks: enriched, totalPoints };
+  const currentSeason = config?.season ?? 20252026;
+  return { manager, picks: enriched, totalPoints, currentSeason };
 }
 
 function StatLine({ stats, posType, isCaptain }: { stats: PlayerStats | null; posType: string; isCaptain?: boolean }) {
@@ -114,7 +116,7 @@ export default async function TeamPage({
   const data = await getTeam(id);
   if (!data) notFound();
 
-  const { manager, picks, totalPoints } = data;
+  const { manager, picks, totalPoints, currentSeason } = data;
   const grouped: Record<string, typeof picks> = { F: [], D: [], G: [] };
   for (const p of picks) grouped[p.position_type]?.push(p);
 
@@ -122,7 +124,8 @@ export default async function TeamPage({
 
   const isOwner = !!email && email.trim().toLowerCase() === manager.email?.toLowerCase();
   const isAdmin = key === process.env.ADMIN_SECRET_KEY;
-  const isLocked = !isOwner && !isAdmin && Date.now() < DRAFT_DEADLINE.getTime();
+  const isCurrentSeason = manager.season === currentSeason;
+  const isLocked = isCurrentSeason && !isOwner && !isAdmin && Date.now() < DRAFT_DEADLINE.getTime();
 
   return (
     <div className="pt-24 pb-32 px-4 max-w-2xl mx-auto">
