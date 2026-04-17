@@ -70,11 +70,11 @@ export default async function Home() {
       <div className="mb-8 flex flex-col items-center">
         <span className="text-xs font-black uppercase tracking-[0.4em] mb-2"
           style={{ fontFamily: "'Space Grotesk', sans-serif", color: '#fabd00' }}>
-          {seasonLabel} · The Rankings
+          {seasonLabel} Playoffs
         </span>
         <h2 className="text-5xl font-black italic tracking-tighter uppercase"
           style={{ fontFamily: "'Space Grotesk', sans-serif", color: '#c9e6ff' }}>
-          Standings
+          Goin&apos; Deep
         </h2>
         <div className="w-16 h-1 mt-2 opacity-50" style={{ background: '#FF4B4B' }} />
       </div>
