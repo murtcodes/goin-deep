@@ -37,6 +37,7 @@ export type Pick = {
   player_name: string
   position_type: 'F' | 'D' | 'G'
   slot: number
+  team?: string | null
 }
 
 export type PlayerStats = {

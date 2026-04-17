@@ -201,11 +201,11 @@ export default async function TeamPage({
                       {captain.position_type} · 2× Points
                     </p>
                   </div>
-                  {captain.stats?.team && (
+                  {(captain.stats?.team || captain.team) && (
                     <div className="relative w-24 h-24 shrink-0 overflow-hidden rounded-sm opacity-90"
                       style={{ background: 'rgba(0,0,0,0.2)' }}>
                       <Image
-                        src={headshotUrl(captain.player_id, captain.stats.team)}
+                        src={headshotUrl(captain.player_id, captain.stats?.team ?? captain.team!)}
                         alt={captain.player_name}
                         fill
                         className="object-cover object-top"
@@ -241,11 +241,11 @@ export default async function TeamPage({
                     <div key={p.id} className="relative p-4 skate-texture transition-colors"
                       style={{ background: '#0d1c32', borderTop: `2px solid ${isCaptain ? '#fabd00' : 'rgba(154,204,243,0.15)'}`, borderRadius: '0.125rem' }}>
                       <div className="flex items-start gap-3">
-                        {p.stats?.team && (
+                        {(p.stats?.team || p.team) && (
                           <div className="relative w-14 h-14 shrink-0 overflow-hidden rounded-sm"
                             style={{ background: 'rgba(255,255,255,0.04)' }}>
                             <Image
-                              src={headshotUrl(p.player_id, p.stats.team)}
+                              src={headshotUrl(p.player_id, p.stats?.team ?? p.team!)}
                               alt={p.player_name}
                               fill
                               className="object-cover object-top"

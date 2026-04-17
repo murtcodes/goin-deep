@@ -61,14 +61,14 @@ export async function POST(req: NextRequest) {
   }
 
   const allPicks = [
-    ...forwards.map((p: { id: number; name: string }, i: number) => ({
-      manager_id: manager.id, player_id: p.id, player_name: p.name, position_type: 'F', slot: i + 1,
+    ...forwards.map((p: { id: number; name: string; team?: string }, i: number) => ({
+      manager_id: manager.id, player_id: p.id, player_name: p.name, team: p.team ?? null, position_type: 'F', slot: i + 1,
     })),
-    ...defensemen.map((p: { id: number; name: string }, i: number) => ({
-      manager_id: manager.id, player_id: p.id, player_name: p.name, position_type: 'D', slot: i + 1,
+    ...defensemen.map((p: { id: number; name: string; team?: string }, i: number) => ({
+      manager_id: manager.id, player_id: p.id, player_name: p.name, team: p.team ?? null, position_type: 'D', slot: i + 1,
     })),
-    ...goalies.map((p: { id: number; name: string }, i: number) => ({
-      manager_id: manager.id, player_id: p.id, player_name: p.name, position_type: 'G', slot: i + 1,
+    ...goalies.map((p: { id: number; name: string; team?: string }, i: number) => ({
+      manager_id: manager.id, player_id: p.id, player_name: p.name, team: p.team ?? null, position_type: 'G', slot: i + 1,
     })),
   ]
 
