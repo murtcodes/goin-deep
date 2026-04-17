@@ -2,6 +2,7 @@ import { supabase } from "@/lib/supabase";
 import { calcPoints } from "@/lib/supabase";
 import type { Manager, Pick, PlayerStats } from "@/lib/supabase";
 import Link from "next/link";
+import Countdown from "@/app/components/Countdown";
 
 export const dynamic = 'force-dynamic';
 
@@ -79,17 +80,20 @@ export default async function Home() {
 
       {/* Draft CTA */}
       {draftOpen && (
-        <div className="mb-8 rounded-lg p-4 text-center"
+        <div className="mb-8 rounded-lg p-5 text-center"
           style={{ background: 'rgba(154,204,243,0.06)', border: '1px solid rgba(154,204,243,0.2)' }}>
           <p className="font-black uppercase tracking-wide mb-3 text-sm"
             style={{ fontFamily: "'Space Grotesk', sans-serif", color: '#c9e6ff' }}>
             🚨 Draft is OPEN
           </p>
           <Link href="/draft"
-            className="inline-block font-black uppercase px-6 py-2.5 transition-all active:scale-95"
+            className="inline-block font-black uppercase px-6 py-2.5 transition-all active:scale-95 mb-5"
             style={{ fontFamily: "'Space Grotesk', sans-serif", background: '#9accf3', color: '#00344e', borderRadius: '0.125rem', boxShadow: '0 0 20px rgba(154,204,243,0.3)' }}>
             Submit Your Picks →
           </Link>
+          <div className="mt-1 pt-4" style={{ borderTop: '1px solid rgba(250,189,0,0.15)' }}>
+            <Countdown />
+          </div>
         </div>
       )}
 
