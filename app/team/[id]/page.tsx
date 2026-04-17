@@ -12,6 +12,14 @@ function headshotUrl(playerId: number, team: string, season = 20252026) {
 
 export const dynamic = 'force-dynamic';
 
+async function getPlayerTeam(playerId: number): Promise<string> {
+  try {
+    const res = await fetch(`https://api-web.nhle.com/v1/player/${playerId}/landing`, { next: { revalidate: 3600 } });
+    const data = await res.json();
+    return data.currentTeamAbbrev || '';
+  } catch { return ''; }
+}
+
 async function getTeam(id: string) {
   const [{ data: manager }, { data: picks }, { data: config }] = await Promise.all([
     supabase.from("managers").select("*").eq("id", id).single(),
@@ -43,8 +51,17 @@ async function getTeam(id: string) {
     return sum + pts * multiplier;
   }, 0);
 
+  // Backfill team from NHL API for picks missing it (submitted before team column existed)
+  const enrichedWithTeam = await Promise.all(enriched.map(async (p) => {
+    if (!p.team && !p.stats?.team) {
+      const team = await getPlayerTeam(p.player_id);
+      return { ...p, team };
+    }
+    return p;
+  }));
+
   const currentSeason = config?.season ?? 20252026;
-  return { manager, picks: enriched, totalPoints, currentSeason };
+  return { manager, picks: enrichedWithTeam, totalPoints, currentSeason };
 }
 
 function StatLine({ stats, posType, isCaptain }: { stats: PlayerStats | null; posType: string; isCaptain?: boolean }) {
