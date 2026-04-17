@@ -18,9 +18,9 @@ export default function MyPicksPage() {
     try {
       const stored = localStorage.getItem("gd_entry");
       if (stored) {
-        const { managerId } = JSON.parse(stored);
+        const { managerId, email: storedEmail } = JSON.parse(stored);
         if (managerId) {
-          router.replace(`/team/${managerId}`);
+          router.replace(`/team/${managerId}?email=${encodeURIComponent(storedEmail || '')}`);
           return;
         }
       }
@@ -36,8 +36,9 @@ export default function MyPicksPage() {
       const res = await fetch(`/api/my-entry?email=${encodeURIComponent(email.trim())}`);
       const data = await res.json();
       if (data.manager) {
-        localStorage.setItem("gd_entry", JSON.stringify({ email: email.trim().toLowerCase(), managerId: data.manager.id }));
-        router.push(`/team/${data.manager.id}`);
+        const normalized = email.trim().toLowerCase();
+        localStorage.setItem("gd_entry", JSON.stringify({ email: normalized, managerId: data.manager.id }));
+        router.push(`/team/${data.manager.id}?email=${encodeURIComponent(normalized)}`);
       } else {
         setError("No team found for that email this season.");
       }

@@ -97,8 +97,15 @@ function StatLine({ stats, posType, isCaptain }: { stats: PlayerStats | null; po
 
 const POS_LABEL: Record<string, string> = { F: 'Forwards', D: 'Defensemen', G: 'Goalies' };
 
-export default async function TeamPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function TeamPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ email?: string }>;
+}) {
   const { id } = await params;
+  const { email } = await searchParams;
   const data = await getTeam(id);
   if (!data) notFound();
 
@@ -107,7 +114,9 @@ export default async function TeamPage({ params }: { params: Promise<{ id: strin
   for (const p of picks) grouped[p.position_type]?.push(p);
 
   const captain = picks.find(p => p.player_id === manager.captain_player_id);
-  const isLocked = Date.now() < DRAFT_DEADLINE.getTime();
+
+  const isOwner = !!email && email.trim().toLowerCase() === manager.email?.toLowerCase();
+  const isLocked = !isOwner && Date.now() < DRAFT_DEADLINE.getTime();
 
   return (
     <div className="pt-24 pb-32 px-4 max-w-2xl mx-auto">
