@@ -107,10 +107,10 @@ export default async function TeamPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ email?: string }>;
+  searchParams: Promise<{ email?: string; key?: string }>;
 }) {
   const { id } = await params;
-  const { email } = await searchParams;
+  const { email, key } = await searchParams;
   const data = await getTeam(id);
   if (!data) notFound();
 
@@ -121,7 +121,8 @@ export default async function TeamPage({
   const captain = picks.find(p => p.player_id === manager.captain_player_id);
 
   const isOwner = !!email && email.trim().toLowerCase() === manager.email?.toLowerCase();
-  const isLocked = !isOwner && Date.now() < DRAFT_DEADLINE.getTime();
+  const isAdmin = key === process.env.ADMIN_SECRET_KEY;
+  const isLocked = !isOwner && !isAdmin && Date.now() < DRAFT_DEADLINE.getTime();
 
   return (
     <div className="pt-24 pb-32 px-4 max-w-2xl mx-auto">
