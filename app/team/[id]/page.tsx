@@ -2,8 +2,13 @@ import { supabase } from "@/lib/supabase";
 import { calcPoints } from "@/lib/supabase";
 import type { PlayerStats } from "@/lib/supabase";
 import Link from "next/link";
+import Image from "next/image";
 import { notFound } from "next/navigation";
 import { DRAFT_DEADLINE } from "@/lib/config";
+
+function headshotUrl(playerId: number, team: string, season = 20252026) {
+  return `https://assets.nhle.com/mugs/nhl/${season}/${team}/${playerId}.png`;
+}
 
 export const dynamic = 'force-dynamic';
 
@@ -178,7 +183,7 @@ export default async function TeamPage({
               <div className="relative overflow-hidden skate-texture p-6"
                 style={{ background: '#27354c', border: '2px solid #fabd00', boxShadow: '0 0 40px rgba(250,189,0,0.15)', borderRadius: '0.25rem' }}>
                 <div className="flex items-start justify-between mb-4">
-                  <div>
+                  <div className="flex-1">
                     <div className="inline-flex items-center justify-center w-10 h-10 font-black text-2xl italic mb-3"
                       style={{ fontFamily: "'Space Grotesk', sans-serif", background: '#fabd00', color: '#3f2e00', borderRadius: '0.125rem', boxShadow: '0 0 15px rgba(250,189,0,0.5)' }}>
                       C
@@ -192,6 +197,18 @@ export default async function TeamPage({
                       {captain.position_type} · 2× Points
                     </p>
                   </div>
+                  {captain.stats?.team && (
+                    <div className="relative w-24 h-24 shrink-0 overflow-hidden rounded-sm opacity-90"
+                      style={{ background: 'rgba(0,0,0,0.2)' }}>
+                      <Image
+                        src={headshotUrl(captain.player_id, captain.stats.team)}
+                        alt={captain.player_name}
+                        fill
+                        className="object-cover object-top"
+                        unoptimized
+                      />
+                    </div>
+                  )}
                 </div>
                 <StatLine stats={captain.stats ?? null} posType={captain.position_type} isCaptain />
               </div>
@@ -219,19 +236,33 @@ export default async function TeamPage({
                   return (
                     <div key={p.id} className="relative p-4 skate-texture transition-colors"
                       style={{ background: '#0d1c32', borderTop: `2px solid ${isCaptain ? '#fabd00' : 'rgba(154,204,243,0.15)'}`, borderRadius: '0.125rem' }}>
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <span className="font-bold uppercase tracking-tight text-base"
-                            style={{ fontFamily: "'Space Grotesk', sans-serif", color: '#ffffff' }}>
-                            {p.player_name}
-                          </span>
-                          <span className="ml-2 text-[10px] font-black uppercase px-1.5 py-0.5"
-                            style={{ fontFamily: "'Space Grotesk', sans-serif", background: 'rgba(154,204,243,0.1)', color: 'rgba(154,204,243,0.6)', borderRadius: '0.125rem' }}>
-                            {p.position_type}
-                          </span>
+                      <div className="flex items-start gap-3">
+                        {p.stats?.team && (
+                          <div className="relative w-14 h-14 shrink-0 overflow-hidden rounded-sm"
+                            style={{ background: 'rgba(255,255,255,0.04)' }}>
+                            <Image
+                              src={headshotUrl(p.player_id, p.stats.team)}
+                              alt={p.player_name}
+                              fill
+                              className="object-cover object-top"
+                              unoptimized
+                            />
+                          </div>
+                        )}
+                        <div className="flex-1">
+                          <div>
+                            <span className="font-bold uppercase tracking-tight text-base"
+                              style={{ fontFamily: "'Space Grotesk', sans-serif", color: '#ffffff' }}>
+                              {p.player_name}
+                            </span>
+                            <span className="ml-2 text-[10px] font-black uppercase px-1.5 py-0.5"
+                              style={{ fontFamily: "'Space Grotesk', sans-serif", background: 'rgba(154,204,243,0.1)', color: 'rgba(154,204,243,0.6)', borderRadius: '0.125rem' }}>
+                              {p.position_type}
+                            </span>
+                          </div>
+                          <StatLine stats={p.stats ?? null} posType={p.position_type} isCaptain={false} />
                         </div>
                       </div>
-                      <StatLine stats={p.stats ?? null} posType={p.position_type} isCaptain={false} />
                     </div>
                   );
                 })}
