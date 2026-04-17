@@ -2,7 +2,7 @@ import { supabase } from "@/lib/supabase";
 import { calcPoints } from "@/lib/supabase";
 import type { PlayerStats } from "@/lib/supabase";
 import Link from "next/link";
-import Image from "next/image";
+import PlayerHeadshot from "@/app/components/PlayerHeadshot";
 import { notFound } from "next/navigation";
 import { DRAFT_DEADLINE } from "@/lib/config";
 
@@ -219,16 +219,11 @@ export default async function TeamPage({
                     </p>
                   </div>
                   {(captain.stats?.team || captain.team) && (
-                    <div className="relative w-24 h-24 shrink-0 overflow-hidden rounded-sm opacity-90"
-                      style={{ background: 'rgba(0,0,0,0.2)' }}>
-                      <Image
-                        src={headshotUrl(captain.player_id, captain.stats?.team ?? captain.team!)}
-                        alt={captain.player_name}
-                        fill
-                        className="object-cover object-top"
-                        unoptimized
-                      />
-                    </div>
+                    <PlayerHeadshot
+                      src={headshotUrl(captain.player_id, captain.stats?.team ?? captain.team!)}
+                      alt={captain.player_name}
+                      size="lg"
+                    />
                   )}
                 </div>
                 <StatLine stats={captain.stats ?? null} posType={captain.position_type} isCaptain />
@@ -259,16 +254,10 @@ export default async function TeamPage({
                       style={{ background: '#0d1c32', borderTop: `2px solid ${isCaptain ? '#fabd00' : 'rgba(154,204,243,0.15)'}`, borderRadius: '0.125rem' }}>
                       <div className="flex items-start gap-3">
                         {(p.stats?.team || p.team) && (
-                          <div className="relative w-14 h-14 shrink-0 overflow-hidden rounded-sm"
-                            style={{ background: 'rgba(255,255,255,0.04)' }}>
-                            <Image
-                              src={headshotUrl(p.player_id, p.stats?.team ?? p.team!)}
-                              alt={p.player_name}
-                              fill
-                              className="object-cover object-top"
-                              unoptimized
-                            />
-                          </div>
+                          <PlayerHeadshot
+                            src={headshotUrl(p.player_id, p.stats?.team ?? p.team!)}
+                            alt={p.player_name}
+                          />
                         )}
                         <div className="flex-1">
                           <div>
