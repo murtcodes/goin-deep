@@ -6,25 +6,21 @@ import PlayerHeadshot from "@/app/components/PlayerHeadshot";
 import { notFound } from "next/navigation";
 import { DRAFT_DEADLINE } from "@/lib/config";
 
-function headshotUrl(playerId: number, team: string, season = 20252026) {
-  return `https://assets.nhle.com/mugs/nhl/${season}/${team}/${playerId}.png`;
-}
-
-async function headshotExists(url: string): Promise<boolean> {
-  try {
-    const res = await fetch(url, { redirect: 'manual', next: { revalidate: 86400 } });
-    return res.status === 200;
-  } catch { return false; }
-}
-
 export const dynamic = 'force-dynamic';
 
-async function getPlayerTeam(playerId: number): Promise<string> {
+async function getPlayerMeta(playerId: number): Promise<{ team: string; headshot: string }> {
   try {
     const res = await fetch(`https://api-web.nhle.com/v1/player/${playerId}/landing`, { next: { revalidate: 3600 } });
+    if (!res.ok) return { team: '', headshot: '' };
     const data = await res.json();
-    return data.currentTeamAbbrev || '';
-  } catch { return ''; }
+    const headshot = typeof data.headshot === 'string' ? data.headshot : '';
+    // NHL returns a default-skater URL when no real photo exists
+    const isDefault = /default-skater/i.test(headshot);
+    return {
+      team: data.currentTeamAbbrev || '',
+      headshot: isDefault ? '' : headshot,
+    };
+  } catch { return { team: '', headshot: '' }; }
 }
 
 async function getTeam(id: string) {
@@ -58,26 +54,14 @@ async function getTeam(id: string) {
     return sum + pts * multiplier;
   }, 0);
 
-  // Backfill team from NHL API for picks missing it (submitted before team column existed)
-  const withTeam = await Promise.all(enriched.map(async (p) => {
-    if (!p.team && !p.stats?.team) {
-      const team = await getPlayerTeam(p.player_id);
-      return { ...p, team };
-    }
-    return p;
+  // One NHL API call per player — gives us both team (for fallback) and canonical headshot URL
+  const enrichedWithTeam = await Promise.all(enriched.map(async (p) => {
+    const meta = await getPlayerMeta(p.player_id);
+    const team = p.stats?.team ?? p.team ?? meta.team;
+    return { ...p, team, headshot: meta.headshot };
   }));
 
   const currentSeason = config?.season ?? 20252026;
-
-  // Verify headshots exist (NHL returns 302→default-skater for unknown player/team combos)
-  const enrichedWithTeam = await Promise.all(withTeam.map(async (p) => {
-    const team = p.stats?.team ?? p.team;
-    if (!team) return { ...p, hasHeadshot: false };
-    const url = headshotUrl(p.player_id, team, currentSeason);
-    const hasHeadshot = await headshotExists(url);
-    return { ...p, hasHeadshot };
-  }));
-
   return { manager, picks: enrichedWithTeam, totalPoints, currentSeason };
 }
 
@@ -235,9 +219,9 @@ export default async function TeamPage({
                       {captain.position_type} · 2× Points
                     </p>
                   </div>
-                  {captain.hasHeadshot && (
+                  {captain.headshot && (
                     <PlayerHeadshot
-                      src={headshotUrl(captain.player_id, captain.stats?.team ?? captain.team!)}
+                      src={captain.headshot}
                       alt={captain.player_name}
                       size="lg"
                     />
@@ -270,9 +254,9 @@ export default async function TeamPage({
                     <div key={p.id} className="relative p-4 skate-texture transition-colors"
                       style={{ background: '#0d1c32', borderTop: `2px solid ${isCaptain ? '#fabd00' : 'rgba(154,204,243,0.15)'}`, borderRadius: '0.125rem' }}>
                       <div className="flex items-start gap-3">
-                        {p.hasHeadshot && (
+                        {p.headshot && (
                           <PlayerHeadshot
-                            src={headshotUrl(p.player_id, p.stats?.team ?? p.team!)}
+                            src={p.headshot}
                             alt={p.player_name}
                           />
                         )}
