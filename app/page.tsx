@@ -3,6 +3,7 @@ import { calcPoints } from "@/lib/supabase";
 import type { Manager, Pick, PlayerStats } from "@/lib/supabase";
 import Link from "next/link";
 import Countdown from "@/app/components/Countdown";
+import { DRAFT_DEADLINE } from "@/lib/config";
 
 export const dynamic = 'force-dynamic';
 
@@ -63,6 +64,8 @@ const RANK_STYLES = [
 export default async function Home() {
   const { scores, lastUpdated, draftOpen, season } = await getLeaderboard();
   const seasonLabel = `${String(season).slice(0, 4)}–${String(season).slice(4)}`;
+  const beforeDeadline = Date.now() < DRAFT_DEADLINE.getTime();
+  const showDraftCTA = draftOpen && beforeDeadline;
 
   return (
     <div className="pt-24 pb-32 px-4 max-w-2xl mx-auto">
@@ -80,7 +83,7 @@ export default async function Home() {
       </div>
 
       {/* Draft CTA */}
-      {draftOpen && (
+      {showDraftCTA && (
         <div className="mb-8 rounded-lg p-5 text-center"
           style={{ background: 'rgba(154,204,243,0.06)', border: '1px solid rgba(154,204,243,0.2)' }}>
           <p className="font-black uppercase tracking-wide mb-3 text-sm"
