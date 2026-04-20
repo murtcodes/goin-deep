@@ -12,7 +12,13 @@ type ManagerScore = {
   manager: Manager;
   totalPoints: number;
   picks: (Pick & { stats?: PlayerStats })[];
+  topScorers: { name: string; points: number }[];
 };
+
+function lastName(fullName: string): string {
+  const parts = fullName.trim().split(/\s+/);
+  return parts[parts.length - 1] || fullName;
+}
 
 async function getLeaderboard() {
   const { data: config } = await supabase.from("pool_config").select("*").eq("id", 1).single();
@@ -41,14 +47,22 @@ async function getLeaderboard() {
 
     const enriched = managerPicks.map((p) => ({ ...p, stats: statsMap.get(p.player_id) }));
 
-    const totalPoints = enriched.reduce((sum, p) => {
-      if (!p.stats) return sum;
+    const pickPoints = enriched.map((p) => {
+      if (!p.stats) return { name: p.player_name, points: 0 };
       const pts = calcPoints(p.stats, p.position_type as "F" | "D" | "G");
       const multiplier = p.player_id === manager.captain_player_id ? 2 : 1;
-      return sum + pts * multiplier;
-    }, 0);
+      return { name: p.player_name, points: pts * multiplier };
+    });
 
-    return { manager, totalPoints, picks: enriched };
+    const totalPoints = pickPoints.reduce((sum, p) => sum + p.points, 0);
+
+    const topScorers = pickPoints
+      .filter((p) => p.points > 0)
+      .sort((a, b) => b.points - a.points)
+      .slice(0, 3)
+      .map((p) => ({ name: lastName(p.name), points: p.points }));
+
+    return { manager, totalPoints, picks: enriched, topScorers };
   });
 
   scores.sort((a, b) => b.totalPoints - a.totalPoints);
@@ -140,6 +154,18 @@ export default async function Home() {
                       style={{ color: 'rgba(193,199,206,0.7)' }}>
                       {s.manager.name}
                     </p>
+                    {s.topScorers.length > 0 && (
+                      <p className="text-[11px] font-semibold tracking-tight truncate mt-1"
+                        style={{ color: 'rgba(154,204,243,0.55)', fontFamily: "'Space Grotesk', sans-serif" }}>
+                        {s.topScorers.map((t, idx) => (
+                          <span key={t.name}>
+                            {idx > 0 && <span style={{ color: 'rgba(154,204,243,0.3)' }}> · </span>}
+                            <span style={{ color: 'rgba(201,230,255,0.85)' }}>{t.name}</span>
+                            <span className="ml-1 tabular-nums" style={{ color: '#fabd00' }}>{t.points}</span>
+                          </span>
+                        ))}
+                      </p>
+                    )}
                   </div>
                   {/* Points */}
                   <div className="text-right shrink-0">
