@@ -60,7 +60,7 @@ export async function fetchPlayerPlayoffStats(
   try {
     const res = await fetch(
       `${NHL_API}/player/${playerId}/game-log/${season}/3`,
-      { next: { revalidate: 1800 } }
+      { cache: 'no-store' }
     )
     if (!res.ok) return null
     const data = await res.json()
@@ -70,7 +70,7 @@ export async function fetchPlayerPlayoffStats(
 
     // Get player info from landing page
     const infoRes = await fetch(`${NHL_API}/player/${playerId}/landing`, {
-      next: { revalidate: 3600 },
+      cache: 'no-store',
     })
     const info = await infoRes.json()
     const posCode = info.position || ''
