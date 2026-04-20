@@ -135,8 +135,16 @@ export default async function TeamPage({
   if (!data) notFound();
 
   const { manager, picks, totalPoints, currentSeason } = data;
+  const pointsFor = (p: typeof picks[number]) => {
+    if (!p.stats) return 0;
+    const base = calcPoints(p.stats, p.position_type as "F" | "D" | "G");
+    return base * (p.player_id === manager.captain_player_id ? 2 : 1);
+  };
   const grouped: Record<string, typeof picks> = { F: [], D: [], G: [] };
   for (const p of picks) grouped[p.position_type]?.push(p);
+  for (const pos of ['F', 'D', 'G'] as const) {
+    grouped[pos].sort((a, b) => pointsFor(b) - pointsFor(a) || a.slot - b.slot);
+  }
 
   const captain = picks.find(p => p.player_id === manager.captain_player_id);
 
