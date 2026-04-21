@@ -61,19 +61,33 @@ export async function POST(req: NextRequest) {
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
   }
 
+  // Only insert zeros for players that don't already have a row in player_stats.
+  // Never overwrite existing stats with zeros — a failed API call shouldn't wipe real data.
   const missing = playerIds.filter((id) => !statsMap.has(id))
+  let zeroed = 0
   if (missing.length > 0) {
-    const zeroData = missing.map((id) => ({
-      player_id: id,
-      season,
-      player_name: playerMap.get(id)?.name || '',
-      position: playerMap.get(id)?.posType === 'G' ? 'G' : 'F',
-      team: '',
-      goals: 0, assists: 0, wins: 0, shutouts: 0, gp: 0,
-      last_updated: new Date().toISOString(),
-    }))
-    await supabase.from('player_stats').upsert(zeroData, { onConflict: 'player_id,season' })
+    const { data: existing } = await supabase
+      .from('player_stats')
+      .select('player_id')
+      .eq('season', season)
+      .in('player_id', missing)
+    const existingIds = new Set((existing || []).map(e => e.player_id))
+    const trulyNew = missing.filter((id) => !existingIds.has(id))
+
+    if (trulyNew.length > 0) {
+      const zeroData = trulyNew.map((id) => ({
+        player_id: id,
+        season,
+        player_name: playerMap.get(id)?.name || '',
+        position: playerMap.get(id)?.posType === 'G' ? 'G' : 'F',
+        team: '',
+        goals: 0, assists: 0, wins: 0, shutouts: 0, gp: 0,
+        last_updated: new Date().toISOString(),
+      }))
+      await supabase.from('player_stats').upsert(zeroData, { onConflict: 'player_id,season' })
+      zeroed = trulyNew.length
+    }
   }
 
-  return NextResponse.json({ updated: upsertData.length, zeroed: missing.length })
+  return NextResponse.json({ updated: upsertData.length, zeroed, skipped: missing.length - zeroed })
 }
