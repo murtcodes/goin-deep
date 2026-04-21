@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
 import { fetchAllPlayersStats } from '@/lib/nhl'
 
+export const maxDuration = 60
+
 export async function POST(req: NextRequest) {
   const key = req.nextUrl.searchParams.get('key') || req.headers.get('x-admin-key')
   if (key !== process.env.ADMIN_SECRET_KEY) {

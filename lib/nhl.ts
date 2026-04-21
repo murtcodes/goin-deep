@@ -111,11 +111,15 @@ export async function fetchAllPlayersStats(
   const results = new Map<number, NHLPlayoffStats>()
   const unique = [...new Set(playerIds)]
 
-  await Promise.all(
-    unique.map(async (id) => {
-      const stats = await fetchPlayerPlayoffStats(id, season)
-      if (stats) results.set(id, stats)
-    })
-  )
+  // Batch in groups of 5 to avoid NHL API rate limits and Vercel timeouts
+  for (let i = 0; i < unique.length; i += 5) {
+    const batch = unique.slice(i, i + 5)
+    await Promise.all(
+      batch.map(async (id) => {
+        const stats = await fetchPlayerPlayoffStats(id, season)
+        if (stats) results.set(id, stats)
+      })
+    )
+  }
   return results
 }
