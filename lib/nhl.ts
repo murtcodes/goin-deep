@@ -7,6 +7,12 @@ const PLAYOFF_TEAMS = new Set([
   'COL', 'DAL', 'MIN', 'EDM', 'VGK', 'ANA', 'UTA', 'LAK', // West
 ])
 
+// Update this each round as teams get eliminated
+export const ELIMINATED_TEAMS = new Set<string>([
+  // DEMO — remove before committing
+  'PIT', 'BUF',
+])
+
 export type NHLPlayerSuggestion = {
   id: number
   name: string

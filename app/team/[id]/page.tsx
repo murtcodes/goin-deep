@@ -5,6 +5,7 @@ import Link from "next/link";
 import PlayerHeadshot from "@/app/components/PlayerHeadshot";
 import { notFound } from "next/navigation";
 import { DRAFT_DEADLINE } from "@/lib/config";
+import { ELIMINATED_TEAMS } from "@/lib/nhl";
 
 export const dynamic = 'force-dynamic';
 
@@ -203,42 +204,53 @@ export default async function TeamPage({
       ) : (
         <>
           {/* Captain spotlight */}
-          {captain && (
-            <section className="mb-8">
-              <h3 className="text-xs font-bold uppercase tracking-[0.3em] mb-4 flex items-center gap-2"
-                style={{ fontFamily: "'Space Grotesk', sans-serif", color: '#fabd00' }}>
-                <span className="h-px w-8 block" style={{ background: 'rgba(250,189,0,0.3)' }} />
-                Team Captain
-              </h3>
-              <div className="relative overflow-hidden skate-texture p-6"
-                style={{ background: '#27354c', border: '2px solid #fabd00', boxShadow: '0 0 40px rgba(250,189,0,0.15)', borderRadius: '0.25rem' }}>
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex-1">
-                    <div className="inline-flex items-center justify-center w-10 h-10 font-black text-2xl italic mb-3"
-                      style={{ fontFamily: "'Space Grotesk', sans-serif", background: '#fabd00', color: '#3f2e00', borderRadius: '0.125rem', boxShadow: '0 0 15px rgba(250,189,0,0.5)' }}>
-                      C
+          {captain && (() => {
+            const captainElim = ELIMINATED_TEAMS.has(captain.team ?? '');
+            return (
+              <section className="mb-8" style={{ opacity: captainElim ? 0.45 : 1 }}>
+                <h3 className="text-xs font-bold uppercase tracking-[0.3em] mb-4 flex items-center gap-2"
+                  style={{ fontFamily: "'Space Grotesk', sans-serif", color: '#fabd00' }}>
+                  <span className="h-px w-8 block" style={{ background: 'rgba(250,189,0,0.3)' }} />
+                  Team Captain
+                </h3>
+                <div className="relative overflow-hidden skate-texture p-6"
+                  style={{ background: '#27354c', border: `2px solid ${captainElim ? 'rgba(250,189,0,0.3)' : '#fabd00'}`, boxShadow: captainElim ? 'none' : '0 0 40px rgba(250,189,0,0.15)', borderRadius: '0.25rem' }}>
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex-1">
+                      <div className="inline-flex items-center justify-center w-10 h-10 font-black text-2xl italic mb-3"
+                        style={{ fontFamily: "'Space Grotesk', sans-serif", background: captainElim ? 'rgba(250,189,0,0.3)' : '#fabd00', color: '#3f2e00', borderRadius: '0.125rem', boxShadow: captainElim ? 'none' : '0 0 15px rgba(250,189,0,0.5)' }}>
+                        C
+                      </div>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <h4 className="text-3xl font-black uppercase tracking-tighter leading-none"
+                          style={{ fontFamily: "'Space Grotesk', sans-serif", color: captainElim ? 'rgba(255,255,255,0.5)' : '#ffffff' }}>
+                          {captain.player_name}
+                        </h4>
+                        {captainElim && (
+                          <span className="text-[10px] font-black uppercase tracking-widest px-1.5 py-0.5"
+                            style={{ fontFamily: "'Space Grotesk', sans-serif", background: 'rgba(255,75,75,0.2)', color: '#FF4B4B', border: '1px solid rgba(255,75,75,0.3)', borderRadius: '0.125rem' }}>
+                            Eliminated
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-[10px] font-bold uppercase tracking-widest mt-1"
+                        style={{ fontFamily: "'Space Grotesk', sans-serif", color: '#9accf3' }}>
+                        {captain.position_type} · 2× Points
+                      </p>
                     </div>
-                    <h4 className="text-3xl font-black uppercase tracking-tighter leading-none"
-                      style={{ fontFamily: "'Space Grotesk', sans-serif", color: '#ffffff' }}>
-                      {captain.player_name}
-                    </h4>
-                    <p className="text-[10px] font-bold uppercase tracking-widest mt-1"
-                      style={{ fontFamily: "'Space Grotesk', sans-serif", color: '#9accf3' }}>
-                      {captain.position_type} · 2× Points
-                    </p>
+                    {captain.headshot && (
+                      <PlayerHeadshot
+                        src={captain.headshot}
+                        alt={captain.player_name}
+                        size="lg"
+                      />
+                    )}
                   </div>
-                  {captain.headshot && (
-                    <PlayerHeadshot
-                      src={captain.headshot}
-                      alt={captain.player_name}
-                      size="lg"
-                    />
-                  )}
+                  <StatLine stats={captain.stats ?? null} posType={captain.position_type} isCaptain />
                 </div>
-                <StatLine stats={captain.stats ?? null} posType={captain.position_type} isCaptain />
-              </div>
-            </section>
-          )}
+              </section>
+            );
+          })()}
 
           {/* Roster by position */}
           {(['F', 'D', 'G'] as const).map((pos) => (
@@ -258,9 +270,10 @@ export default async function TeamPage({
                 {grouped[pos].map((p) => {
                   const isCaptain = p.player_id === manager.captain_player_id;
                   if (isCaptain) return null;
+                  const isElim = ELIMINATED_TEAMS.has(p.team ?? '');
                   return (
                     <div key={p.id} className="relative p-4 skate-texture transition-colors"
-                      style={{ background: '#0d1c32', borderTop: `2px solid ${isCaptain ? '#fabd00' : 'rgba(154,204,243,0.15)'}`, borderRadius: '0.125rem' }}>
+                      style={{ background: '#0d1c32', borderTop: `2px solid ${isElim ? 'rgba(154,204,243,0.06)' : 'rgba(154,204,243,0.15)'}`, borderRadius: '0.125rem', opacity: isElim ? 0.45 : 1 }}>
                       <div className="flex items-start gap-3">
                         {p.headshot && (
                           <PlayerHeadshot
@@ -269,15 +282,21 @@ export default async function TeamPage({
                           />
                         )}
                         <div className="flex-1">
-                          <div>
+                          <div className="flex items-center flex-wrap gap-2">
                             <span className="font-bold uppercase tracking-tight text-base"
-                              style={{ fontFamily: "'Space Grotesk', sans-serif", color: '#ffffff' }}>
+                              style={{ fontFamily: "'Space Grotesk', sans-serif", color: isElim ? 'rgba(255,255,255,0.5)' : '#ffffff' }}>
                               {p.player_name}
                             </span>
-                            <span className="ml-2 text-[10px] font-black uppercase px-1.5 py-0.5"
+                            <span className="text-[10px] font-black uppercase px-1.5 py-0.5"
                               style={{ fontFamily: "'Space Grotesk', sans-serif", background: 'rgba(154,204,243,0.1)', color: 'rgba(154,204,243,0.6)', borderRadius: '0.125rem' }}>
                               {p.position_type}
                             </span>
+                            {isElim && (
+                              <span className="text-[10px] font-black uppercase tracking-widest px-1.5 py-0.5"
+                                style={{ fontFamily: "'Space Grotesk', sans-serif", background: 'rgba(255,75,75,0.2)', color: '#FF4B4B', border: '1px solid rgba(255,75,75,0.3)', borderRadius: '0.125rem' }}>
+                                Eliminated
+                              </span>
+                            )}
                           </div>
                           <StatLine stats={p.stats ?? null} posType={p.position_type} isCaptain={false} />
                         </div>
