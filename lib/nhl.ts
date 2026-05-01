@@ -9,8 +9,8 @@ const PLAYOFF_TEAMS = new Set([
 
 // Update this each round as teams get eliminated
 export const ELIMINATED_TEAMS = new Set<string>([
-  // DEMO — remove before committing
-  'PIT', 'BUF',
+  // Round 1 — confirmed as of 2026-05-01
+  'OTT', 'PIT', 'LAK', 'DAL', 'EDM',
 ])
 
 export type NHLPlayerSuggestion = {
