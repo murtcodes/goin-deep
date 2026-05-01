@@ -221,13 +221,13 @@ export default async function TeamPage({
                         style={{ fontFamily: "'Space Grotesk', sans-serif", background: captainElim ? 'rgba(250,189,0,0.3)' : '#fabd00', color: '#3f2e00', borderRadius: '0.125rem', boxShadow: captainElim ? 'none' : '0 0 15px rgba(250,189,0,0.5)' }}>
                         C
                       </div>
-                      <div className="flex items-center gap-2 flex-wrap">
+                      <div className="flex flex-col gap-1">
                         <h4 className="text-3xl font-black uppercase tracking-tighter leading-none"
                           style={{ fontFamily: "'Space Grotesk', sans-serif", color: captainElim ? 'rgba(255,255,255,0.5)' : '#ffffff' }}>
                           {captain.player_name}
                         </h4>
                         {captainElim && (
-                          <span className="text-[10px] font-black uppercase tracking-widest px-1.5 py-0.5"
+                          <span className="inline-block self-start text-[10px] font-black uppercase tracking-widest px-1.5 py-0.5"
                             style={{ fontFamily: "'Space Grotesk', sans-serif", background: 'rgba(255,75,75,0.2)', color: '#FF4B4B', border: '1px solid rgba(255,75,75,0.3)', borderRadius: '0.125rem' }}>
                             Eliminated
                           </span>
@@ -282,17 +282,19 @@ export default async function TeamPage({
                           />
                         )}
                         <div className="flex-1">
-                          <div className="flex items-center flex-wrap gap-2">
-                            <span className="font-bold uppercase tracking-tight text-base"
-                              style={{ fontFamily: "'Space Grotesk', sans-serif", color: isElim ? 'rgba(255,255,255,0.5)' : '#ffffff' }}>
-                              {p.player_name}
-                            </span>
-                            <span className="text-[10px] font-black uppercase px-1.5 py-0.5"
-                              style={{ fontFamily: "'Space Grotesk', sans-serif", background: 'rgba(154,204,243,0.1)', color: 'rgba(154,204,243,0.6)', borderRadius: '0.125rem' }}>
-                              {p.position_type}
-                            </span>
+                          <div className="flex flex-col gap-1">
+                            <div className="flex items-center gap-2">
+                              <span className="font-bold uppercase tracking-tight text-base"
+                                style={{ fontFamily: "'Space Grotesk', sans-serif", color: isElim ? 'rgba(255,255,255,0.5)' : '#ffffff' }}>
+                                {p.player_name}
+                              </span>
+                              <span className="text-[10px] font-black uppercase px-1.5 py-0.5"
+                                style={{ fontFamily: "'Space Grotesk', sans-serif", background: 'rgba(154,204,243,0.1)', color: 'rgba(154,204,243,0.6)', borderRadius: '0.125rem' }}>
+                                {p.position_type}
+                              </span>
+                            </div>
                             {isElim && (
-                              <span className="text-[10px] font-black uppercase tracking-widest px-1.5 py-0.5"
+                              <span className="inline-block self-start text-[10px] font-black uppercase tracking-widest px-1.5 py-0.5"
                                 style={{ fontFamily: "'Space Grotesk', sans-serif", background: 'rgba(255,75,75,0.2)', color: '#FF4B4B', border: '1px solid rgba(255,75,75,0.3)', borderRadius: '0.125rem' }}>
                                 Eliminated
                               </span>
