@@ -7,6 +7,11 @@ const PLAYOFF_TEAMS = new Set([
   'COL', 'DAL', 'MIN', 'EDM', 'VGK', 'ANA', 'UTA', 'LAK', // West
 ])
 
+export const ELIMINATED_TEAMS = new Set([
+  'BOS', 'TBL', 'OTT', 'PIT', // East - Round 1
+  'LAK', 'EDM', 'UTA', 'DAL', // West - Round 1
+])
+
 export type NHLPlayerSuggestion = {
   id: number
   name: string

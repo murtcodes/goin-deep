@@ -4,6 +4,7 @@ import type { PlayerStats } from "@/lib/supabase";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { DRAFT_DEADLINE } from "@/lib/config";
+import { ELIMINATED_TEAMS } from "@/lib/nhl";
 
 export const dynamic = 'force-dynamic';
 
@@ -191,6 +192,12 @@ export default async function TeamPage({
                       style={{ fontFamily: "'Space Grotesk', sans-serif", color: '#9accf3' }}>
                       {captain.position_type} · 2× Points
                     </p>
+                    {captain.stats?.team && ELIMINATED_TEAMS.has(captain.stats.team) && (
+                      <span className="inline-block mt-2 text-[9px] font-black uppercase tracking-widest px-1.5 py-0.5"
+                        style={{ fontFamily: "'Space Grotesk', sans-serif", background: 'rgba(255,75,75,0.15)', color: '#FF4B4B', border: '1px solid rgba(255,75,75,0.3)', borderRadius: '0.125rem' }}>
+                        Eliminated
+                      </span>
+                    )}
                   </div>
                 </div>
                 <StatLine stats={captain.stats ?? null} posType={captain.position_type} isCaptain />
@@ -229,6 +236,12 @@ export default async function TeamPage({
                             style={{ fontFamily: "'Space Grotesk', sans-serif", background: 'rgba(154,204,243,0.1)', color: 'rgba(154,204,243,0.6)', borderRadius: '0.125rem' }}>
                             {p.position_type}
                           </span>
+                          {p.stats?.team && ELIMINATED_TEAMS.has(p.stats.team) && (
+                            <span className="ml-2 text-[9px] font-black uppercase px-1.5 py-0.5"
+                              style={{ fontFamily: "'Space Grotesk', sans-serif", background: 'rgba(255,75,75,0.15)', color: '#FF4B4B', border: '1px solid rgba(255,75,75,0.3)', borderRadius: '0.125rem' }}>
+                              Eliminated
+                            </span>
+                          )}
                         </div>
                       </div>
                       <StatLine stats={p.stats ?? null} posType={p.position_type} isCaptain={false} />
