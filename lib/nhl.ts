@@ -103,7 +103,12 @@ export async function fetchPlayerPlayoffStats(
     for (const game of games) {
       if (isGoalie) {
         stats.wins += game.decision === 'W' ? 1 : 0
-        stats.shutouts += game.shotsAgainst > 0 && game.goalsAgainst === 0 ? 1 : 0
+        // Use the NHL's official per-game shutout credit. Do NOT derive it from
+        // shotsAgainst/goalsAgainst — a goalie only earns a shutout by starting
+        // and playing the entire game with 0 GA. A relief appearance with 0 GA
+        // (e.g. Luukkonen 2026-05-16: gamesStarted 0, toi 49:41, shutouts 0)
+        // is a win but NOT a shutout.
+        stats.shutouts += game.shutouts || 0
       } else {
         stats.goals += game.goals || 0
         stats.assists += game.assists || 0
