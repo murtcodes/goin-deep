@@ -9,8 +9,14 @@ const PLAYOFF_TEAMS = new Set([
 
 // Update this each round as teams get eliminated
 export const ELIMINATED_TEAMS = new Set<string>([
-  // Round 1 — all confirmed as of 2026-05-04
+  // Stanley Cup Final stage — confirmed 2026-06-02 via NHL playoff-bracket API.
+  // Only CAR and VGK remain alive (Final, series O).
+  // Round 1: OTT, PIT, LAK, DAL, EDM, BOS, TBL, UTA
   'OTT', 'PIT', 'LAK', 'DAL', 'EDM', 'BOS', 'TBL', 'UTA',
+  // Round 2: BUF, PHI, MIN, ANA
+  'BUF', 'PHI', 'MIN', 'ANA',
+  // Round 3 (Conf Finals): MTL, COL
+  'MTL', 'COL',
 ])
 
 export type NHLPlayerSuggestion = {
